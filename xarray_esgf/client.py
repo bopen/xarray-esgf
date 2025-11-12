@@ -81,7 +81,8 @@ class Client:
             if isinstance(err, Exception):
                 exceptions.append(err)
         if exceptions:
-            raise ExceptionGroup("Errors", exceptions)
+            msg = "Download errors"
+            raise ExceptionGroup(msg, exceptions)
 
     @use_new_combine_kwarg_defaults
     def open_dataset(

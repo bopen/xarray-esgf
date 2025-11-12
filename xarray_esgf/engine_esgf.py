@@ -18,11 +18,14 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
         concat_dims: DATASET_ID_KEYS | Iterable[DATASET_ID_KEYS] | None = None,
     ) -> Dataset:
         client = Client(
-            esgpull_path=esgpull_path, index_node=index_node, selection=filename_or_obj
+            selection=filename_or_obj,
+            esgpull_path=esgpull_path,
+            index_node=index_node,
         )
         client.download()
         return client.open_dataset(
-            concat_dims=concat_dims, drop_variables=drop_variables
+            concat_dims=concat_dims,
+            drop_variables=drop_variables,
         )
 
     open_dataset_parameters = (

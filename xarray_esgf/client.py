@@ -33,7 +33,8 @@ def use_new_combine_kwarg_defaults[**P, T](func: Callable[P, T]) -> Callable[P, 
 
 
 def dataset_id_to_dict(dataset_id: str) -> dict[DATASET_ID_KEYS, str]:
-    return dict(zip(get_args(DATASET_ID_KEYS), dataset_id.split("."), strict=True))
+    keys = get_args(DATASET_ID_KEYS)
+    return dict(zip(keys, dataset_id.split("."), strict=True))
 
 
 @dataclasses.dataclass
@@ -46,7 +47,7 @@ class Client:
     def _client(self) -> Esgpull:
         client = Esgpull(path=self.esgpull_path, install=True)
         client.config.download.disable_ssl = True
-        if self.index_node:
+        if self.index_node is not None:
             client.config.api.index_node = self.index_node
         return client
 
@@ -60,7 +61,9 @@ class Client:
     @cached_property
     def files(self) -> list[File]:
         return self._client.context.files(
-            self._query, max_hits=None, keep_duplicates=False
+            self._query,
+            max_hits=None,
+            keep_duplicates=False,
         )
 
     def _get_local_path(self, file: File) -> Path:
@@ -96,16 +99,21 @@ class Client:
         datasets = []
         for dataset_id, paths in self.local_paths.items():
             ds = xr.open_mfdataset(
-                paths, chunks={}, engine="netcdf4", drop_variables=drop_variables
+                paths,
+                chunks={},
+                engine="netcdf4",
+                drop_variables=drop_variables,
             )
-            if concat_dims:
+            if concat_dims is not None:
                 dataset_id_dict = dataset_id_to_dict(dataset_id)
                 ds = ds.expand_dims({
                     dim: [dataset_id_dict[dim]] for dim in concat_dims
                 })
             datasets.append(ds)
         obj = xr.combine_by_coords(
-            datasets, join="exact", combine_attrs="drop_conflicts"
+            datasets,
+            join="exact",
+            combine_attrs="drop_conflicts",
         )
         if isinstance(obj, DataArray):
             return obj.to_dataset()

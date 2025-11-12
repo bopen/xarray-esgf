@@ -21,6 +21,9 @@ dependencies = [
     "xarray>=2025.6.1",
 ]
 
+[project.entry-points."xarray.backends"]
+esgf = "xarray_esgf.xarray_engine:EsgfBackendEntrypoint"
+
 [project.urls]
 Homepage = "https://bopen.github.io/xarray-esgf/"
 Repository = "https://github.com/bopen/xarray-esgf"

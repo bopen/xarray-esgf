@@ -1,7 +1,7 @@
 import asyncio
 import dataclasses
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from functools import cached_property
 from pathlib import Path
 from typing import Literal, get_args
@@ -38,15 +38,16 @@ def dataset_id_to_dict(dataset_id: str) -> dict[DATASET_ID_KEYS, str]:
 
 @dataclasses.dataclass
 class Client:
-    esgpull_path: str
-    index_node: str
     selection: dict[str, str | list[str]]
+    esgpull_path: str | None = None
+    index_node: str | None = None
 
     @cached_property
     def _client(self) -> Esgpull:
         client = Esgpull(path=self.esgpull_path, install=True)
         client.config.download.disable_ssl = True
-        client.config.api.index_node = self.index_node
+        if self.index_node:
+            client.config.api.index_node = self.index_node
         return client
 
     @cached_property
@@ -83,12 +84,24 @@ class Client:
             raise ExceptionGroup("Errors", exceptions)
 
     @use_new_combine_kwarg_defaults
-    def open_dataset(self, concat_dims: list[DATASET_ID_KEYS]) -> Dataset:
+    def open_dataset(
+        self,
+        concat_dims: DATASET_ID_KEYS | Iterable[DATASET_ID_KEYS] | None,
+        drop_variables: str | Iterable[str] | None = None,
+    ) -> Dataset:
+        if isinstance(concat_dims, str):
+            concat_dims = [concat_dims]
+
         datasets = []
         for dataset_id, paths in self.local_paths.items():
-            dataset_id_dict = dataset_id_to_dict(dataset_id)
-            ds = xr.open_mfdataset(paths, chunks={}, engine="netcdf4")
-            ds = ds.expand_dims({dim: [dataset_id_dict[dim]] for dim in concat_dims})
+            ds = xr.open_mfdataset(
+                paths, chunks={}, engine="netcdf4", drop_variables=drop_variables
+            )
+            if concat_dims:
+                dataset_id_dict = dataset_id_to_dict(dataset_id)
+                ds = ds.expand_dims({
+                    dim: [dataset_id_dict[dim]] for dim in concat_dims
+                })
             datasets.append(ds)
         obj = xr.combine_by_coords(
             datasets, join="exact", combine_attrs="drop_conflicts"

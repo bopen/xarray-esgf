@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from xarray_esgf import Client
+import xarray as xr
 
 
 def test_client(tmp_path: Path) -> None:
@@ -16,13 +16,12 @@ def test_client(tmp_path: Path) -> None:
             '"pr_Amon_EC-Earth3-CC_ssp585_r1i1p1f1_gr_202001-202012.nc"',
         ]
     }
-    client = Client(
+    ds = xr.open_dataset(
+        selection,
         esgpull_path=str(tmp_path / "esgpull"),
-        index_node="esgf.ceda.ac.uk",
-        selection=selection,
+        concat_dims="experiment_id",
+        engine="esgf",
     )
-    client.download()
-    ds = client.open_dataset(concat_dims=["experiment_id"])
     assert ds.sizes == {
         "experiment_id": 2,
         "time": 24,

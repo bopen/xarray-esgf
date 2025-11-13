@@ -90,8 +90,10 @@ class Client:
             datasets[file.dataset_id].append(self.get_local_path(file))
         return dict(datasets)
 
-    def download(self) -> None:
-        _, errors = asyncio.run(self._client.download(self.missing_files, use_db=False))
+    def download(self) -> list[File]:
+        downloaded, errors = asyncio.run(
+            self._client.download(self.missing_files, use_db=False)
+        )
         exceptions = []
         for error in errors:
             err = error.err
@@ -100,6 +102,7 @@ class Client:
         if exceptions:
             msg = "Download errors"
             raise ExceptionGroup(msg, exceptions)
+        return downloaded
 
     @use_new_combine_kwarg_defaults
     def open_dataset(

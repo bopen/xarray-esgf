@@ -10,5 +10,9 @@ def test_missing_files(tmp_path: Path) -> None:
         esgpull_path=str(tmp_path / "esgpull"),
     )
     assert len(client.missing_files) == 1
-    client.download()
+    downloaded = client.download()
+    assert len(downloaded) == 1
     assert len(client.missing_files) == 0
+
+    downloaded = client.download()
+    assert len(downloaded) == 0

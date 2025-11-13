@@ -106,6 +106,8 @@ class Client:
         if isinstance(concat_dims, str):
             concat_dims = [concat_dims]
 
+        self.download()
+
         datasets = []
         for dataset_id, paths in self.local_paths.items():
             ds = xr.open_mfdataset(

@@ -22,7 +22,6 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
             esgpull_path=esgpull_path,
             index_node=index_node,
         )
-        client.download()
         return client.open_dataset(
             concat_dims=concat_dims,
             drop_variables=drop_variables,

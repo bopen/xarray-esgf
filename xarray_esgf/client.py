@@ -1,5 +1,6 @@
 import asyncio
 import dataclasses
+import hashlib
 from collections import defaultdict
 from collections.abc import Callable, Iterable
 from functools import cached_property
@@ -66,18 +67,31 @@ class Client:
             keep_duplicates=False,
         )
 
-    def _get_local_path(self, file: File) -> Path:
+    def get_local_path(self, file: File) -> Path:
         return self._client.fs.paths.data / file.local_path / file.filename
+
+    @property
+    def missing_files(self) -> list[File]:
+        missing_files = []
+        for file in self.files:
+            path = self.get_local_path(file)
+            if path.exists():
+                with path.open("rb") as f:
+                    digest = hashlib.file_digest(f, file.checksum_type)
+                if digest.hexdigest() == file.checksum:
+                    continue
+            missing_files.append(file)
+        return missing_files
 
     @cached_property
     def local_paths(self) -> dict[str, list[Path]]:
         datasets = defaultdict(list)
         for file in self.files:
-            datasets[file.dataset_id].append(self._get_local_path(file))
+            datasets[file.dataset_id].append(self.get_local_path(file))
         return dict(datasets)
 
     def download(self) -> None:
-        _, errors = asyncio.run(self._client.download(self.files, use_db=False))
+        _, errors = asyncio.run(self._client.download(self.missing_files, use_db=False))
         exceptions = []
         for error in errors:
             err = error.err

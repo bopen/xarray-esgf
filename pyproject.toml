@@ -15,10 +15,10 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "dask>=2025.11.0",
-    "esgpull>=0.9.2",
-    "netcdf4>=1.7.3",
-    "xarray>=2025.6.1",
+    "dask",
+    "esgpull",
+    "netcdf4",
+    "xarray",
 ]
 
 [project.entry-points."xarray.backends"]

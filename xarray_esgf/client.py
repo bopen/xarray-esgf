@@ -1,6 +1,5 @@
 import asyncio
 import dataclasses
-import hashlib
 from collections import defaultdict
 from collections.abc import Callable, Iterable
 from functools import cached_property
@@ -9,6 +8,7 @@ from typing import Literal, get_args
 
 import xarray as xr
 from esgpull import Esgpull, File, Query
+from esgpull.fs import FileCheck
 from xarray import DataArray, Dataset
 
 DATASET_ID_KEYS = Literal[
@@ -68,20 +68,13 @@ class Client:
         )
 
     def get_local_path(self, file: File) -> Path:
-        return self._client.fs.paths.data / file.local_path / file.filename
+        return self._client.fs[file].drs
 
     @property
     def missing_files(self) -> list[File]:
-        missing_files = []
-        for file in self.files:
-            path = self.get_local_path(file)
-            if path.exists():
-                with path.open("rb") as f:
-                    digest = hashlib.file_digest(f, file.checksum_type)
-                if digest.hexdigest() == file.checksum:
-                    continue
-            missing_files.append(file)
-        return missing_files
+        return [
+            file for file in self.files if self._client.fs.check(file) != FileCheck.Ok
+        ]
 
     @cached_property
     def local_paths(self) -> dict[str, list[Path]]:

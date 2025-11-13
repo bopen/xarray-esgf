@@ -3,7 +3,7 @@ from pathlib import Path
 import xarray as xr
 
 
-def test_client(tmp_path: Path) -> None:
+def test_open_dataset(tmp_path: Path) -> None:
     selection = {
         "query": [
             '"tas_Amon_EC-Earth3-CC_ssp245_r1i1p1f1_gr_201901-201912.nc"',

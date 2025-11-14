@@ -110,4 +110,4 @@ ignore = [
 preview = true
 
 [tool.uv.sources]
-esgpull = { git = "https://github.com/malmans2/esgf-download.git" }
+esgpull = { git = "https://github.com/malmans2/esgf-download.git", rev = "get-running-loop" }

@@ -34,11 +34,8 @@ dev = [
     "pytest>=7.2.0",
     "pre-commit>=2.20.0",
     "tox-uv>=1.11.3",
-
     "mypy>=0.991",
-
     "ruff>=0.11.5",
-
 ]
 
 [build-system]
@@ -110,3 +107,6 @@ ignore = [
 
 [tool.ruff.format]
 preview = true
+
+[tool.uv.sources]
+esgpull = { git = "https://github.com/malmans2/esgf-download.git", rev = "get-running-loop" }

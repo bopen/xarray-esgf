@@ -29,4 +29,14 @@ def test_open_dataset(tmp_path: Path) -> None:
         "lat": 256,
         "lon": 512,
     }
-    assert {"tas", "pr"} < set(ds.data_vars)
+    assert set(ds.coords) == {
+        "experiment_id",
+        "height",
+        "lat",
+        "lat_bnds",
+        "lon",
+        "lon_bnds",
+        "time",
+        "time_bnds",
+    }
+    assert set(ds.data_vars) == {"tas", "pr"}

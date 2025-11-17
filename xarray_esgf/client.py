@@ -38,6 +38,12 @@ def dataset_id_to_dict(dataset_id: str) -> dict[DATASET_ID_KEYS, str]:
     return dict(zip(keys, dataset_id.split("."), strict=True))
 
 
+def set_bound_coords(ds: Dataset) -> Dataset:
+    return ds.set_coords([
+        name for name, da in ds.variables.items() if "bnds" in da.dims
+    ])
+
+
 @dataclasses.dataclass
 class Client:
     selection: dict[str, str | list[str]]
@@ -115,6 +121,7 @@ class Client:
                 chunks={},
                 engine="h5netcdf",
                 drop_variables=drop_variables,
+                preprocess=set_bound_coords,
             )
             if concat_dims is not None:
                 dataset_id_dict = dataset_id_to_dict(dataset_id)

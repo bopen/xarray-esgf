@@ -17,7 +17,7 @@ classifiers = [
 dependencies = [
     "dask",
     "esgpull",
-    "netcdf4",
+    "h5netcdf",
     "xarray",
 ]
 

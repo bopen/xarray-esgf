@@ -113,7 +113,7 @@ class Client:
             ds = xr.open_mfdataset(
                 paths,
                 chunks={},
-                engine="netcdf4",
+                engine="h5netcdf",
                 drop_variables=drop_variables,
             )
             if concat_dims is not None:

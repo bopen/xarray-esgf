@@ -135,5 +135,7 @@ class Client:
             combine_attrs="drop_conflicts",
         )
         if isinstance(obj, DataArray):
-            return obj.to_dataset()
+            obj = obj.to_dataset()
+
+        obj.attrs["dataset_ids"] = sorted(self.local_paths)
         return obj

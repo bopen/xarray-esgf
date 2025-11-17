@@ -16,7 +16,7 @@ classifiers = [
 ]
 dependencies = [
     "dask",
-    "esgpull",
+    "esgpull @ git+https://github.com/malmans2/esgf-download.git@get-running-loop",
     "h5netcdf",
     "xarray",
 ]
@@ -44,6 +44,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["xarray_esgf"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.mypy]
 files = ["xarray_esgf"]
@@ -107,6 +110,3 @@ ignore = [
 
 [tool.ruff.format]
 preview = true
-
-[tool.uv.sources]
-esgpull = { git = "https://github.com/malmans2/esgf-download.git", rev = "get-running-loop" }

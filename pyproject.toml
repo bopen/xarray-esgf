@@ -16,7 +16,7 @@ classifiers = [
 ]
 dependencies = [
     "dask",
-    "esgpull @ git+https://github.com/malmans2/esgf-download.git@get-running-loop",
+    "esgpull @ git+https://github.com/malmans2/esgf-download.git@fix-jupyter",
     "h5netcdf",
     "xarray",
 ]

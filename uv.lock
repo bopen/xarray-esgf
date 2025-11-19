@@ -316,8 +316,8 @@ wheels = [
 
 [[package]]
 name = "esgpull"
-version = "0.9.2"
-source = { git = "https://github.com/ESGF/esgf-download.git#fcecf7128e0f431d5d1f1547d9c01b41469e73c3" }
+version = "0.9.3"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
     { name = "aiostream" },
@@ -339,6 +339,10 @@ dependencies = [
     { name = "setuptools" },
     { name = "sqlalchemy" },
     { name = "tomlkit" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ba/90/b3c4f4602f551114039302992c98f5077b7e1e81b2324e66e312bd17ad78/esgpull-0.9.3.tar.gz", hash = "sha256:86beb3a9488940041778fe74d429b263512e586856e5a5ee885852d1b269a91d", size = 254408, upload-time = "2025-11-19T16:44:17.294Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/37/10/68b9bf3bfcbbec8b2b093105c44f08fdff1125a3ba6521d7af019f6e6a81/esgpull-0.9.3-py3-none-any.whl", hash = "sha256:b16cff2dc7ec616ce95682f15037e10109256465115db30c79ff8a8dcc25ec08", size = 109263, upload-time = "2025-11-19T16:44:15.644Z" },
 ]
 
 [[package]]
@@ -1425,7 +1429,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "dask" },
-    { name = "esgpull", git = "https://github.com/ESGF/esgf-download.git" },
+    { name = "esgpull", specifier = ">=0.9.3" },
     { name = "h5netcdf" },
     { name = "xarray" },
 ]

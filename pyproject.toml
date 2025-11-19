@@ -16,7 +16,7 @@ classifiers = [
 ]
 dependencies = [
     "dask",
-    "esgpull @ git+https://github.com/ESGF/esgf-download.git",
+    "esgpull>=0.9.3",
     "h5netcdf",
     "xarray",
 ]
@@ -45,11 +45,7 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["xarray_esgf"]
 
-[tool.hatch.metadata]
-allow-direct-references = true
-
 [tool.mypy]
-files = ["xarray_esgf"]
 disallow_untyped_defs = true
 disallow_any_unimported = true
 no_implicit_optional = true

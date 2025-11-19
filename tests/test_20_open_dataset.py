@@ -4,7 +4,7 @@ import xarray as xr
 
 
 def test_open_dataset(tmp_path: Path, index_node: str) -> None:
-    selection: dict[str, str | list[str]] = {
+    selection = {
         "query": [
             '"tas_Amon_EC-Earth3-CC_ssp245_r1i1p1f1_gr_201901-201912.nc"',
             '"tas_Amon_EC-Earth3-CC_ssp245_r1i1p1f1_gr_202001-202012.nc"',

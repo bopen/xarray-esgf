@@ -6,6 +6,7 @@ from functools import cached_property
 from pathlib import Path
 from typing import Literal, get_args
 
+import tqdm
 import xarray as xr
 from esgpull import Esgpull, File, Query
 from esgpull.fs import FileCheck
@@ -38,16 +39,10 @@ def dataset_id_to_dict(dataset_id: str) -> dict[DATASET_ID_KEYS, str]:
     return dict(zip(keys, dataset_id.split("."), strict=True))
 
 
-def set_bound_coords(ds: Dataset) -> Dataset:
-    return ds.set_coords([
-        name for name, da in ds.variables.items() if "bnds" in da.dims
-    ])
-
-
 @dataclasses.dataclass
 class Client:
     selection: dict[str, str | list[str]]
-    esgpull_path: str | None = None
+    esgpull_path: str | Path | None = None
     index_node: str | None = None
 
     @cached_property
@@ -73,21 +68,11 @@ class Client:
             keep_duplicates=False,
         )
 
-    def get_local_path(self, file: File) -> Path:
-        return self._client.fs[file].drs
-
     @property
     def missing_files(self) -> list[File]:
         return [
             file for file in self.files if self._client.fs.check(file) != FileCheck.Ok
         ]
-
-    @cached_property
-    def local_paths(self) -> dict[str, list[Path]]:
-        datasets = defaultdict(list)
-        for file in self.files:
-            datasets[file.dataset_id].append(self.get_local_path(file))
-        return dict(datasets)
 
     def download(self) -> list[File]:
         downloaded, errors = asyncio.run(
@@ -108,34 +93,51 @@ class Client:
         self,
         concat_dims: DATASET_ID_KEYS | Iterable[DATASET_ID_KEYS] | None,
         drop_variables: str | Iterable[str] | None = None,
+        download: bool = False,
+        show_progress: bool = True,
     ) -> Dataset:
         if isinstance(concat_dims, str):
             concat_dims = [concat_dims]
+        concat_dims = concat_dims or []
 
-        self.download()
+        if download:
+            self.download()
 
-        datasets = []
-        for dataset_id, paths in self.local_paths.items():
-            ds = xr.open_mfdataset(
-                paths,
+        grouped_objects = defaultdict(list)
+        for file in tqdm.tqdm(
+            self.files, disable=not show_progress, desc="Opening datasets"
+        ):
+            ds = xr.open_dataset(
+                self._client.fs[file].drs if download else file.url,
                 chunks={},
                 engine="h5netcdf",
                 drop_variables=drop_variables,
-                preprocess=set_bound_coords,
             )
-            if concat_dims is not None:
-                dataset_id_dict = dataset_id_to_dict(dataset_id)
-                ds = ds.expand_dims({
-                    dim: [dataset_id_dict[dim]] for dim in concat_dims
-                })
-            datasets.append(ds)
+            grouped_objects[file.dataset_id].append(ds)
+
+        combined_datasets = []
+        for dataset_id, datasets in grouped_objects.items():
+            dataset_id_dict = dataset_id_to_dict(dataset_id)
+            ds = xr.concat(
+                datasets,
+                dim="time",
+                data_vars="minimal",
+                coords="minimal",
+                compat="override",
+                combine_attrs="drop_conflicts",
+            )
+            ds = ds.expand_dims({dim: [dataset_id_dict[dim]] for dim in concat_dims})
+            ds = ds.set_coords([
+                name for name, da in ds.variables.items() if "bnds" in da.dims
+            ])
+            combined_datasets.append(ds)
+
         obj = xr.combine_by_coords(
-            datasets,
+            combined_datasets,
             join="exact",
             combine_attrs="drop_conflicts",
         )
         if isinstance(obj, DataArray):
             obj = obj.to_dataset()
-
-        obj.attrs["dataset_ids"] = sorted(self.local_paths)
+        obj.attrs["dataset_ids"] = sorted(grouped_objects)
         return obj

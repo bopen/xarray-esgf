@@ -1,9 +1,12 @@
 from pathlib import Path
 
+import pytest
 import xarray as xr
 
 
-def test_open_dataset(tmp_path: Path, index_node: str) -> None:
+@pytest.mark.parametrize("download", [False])
+def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
+    esgpull_path = tmp_path / "esgpull"
     selection = {
         "query": [
             '"tas_Amon_EC-Earth3-CC_ssp245_r1i1p1f1_gr_201901-201912.nc"',
@@ -18,11 +21,15 @@ def test_open_dataset(tmp_path: Path, index_node: str) -> None:
     }
     ds = xr.open_dataset(
         selection,  # type: ignore[arg-type]
-        esgpull_path=str(tmp_path / "esgpull"),
+        esgpull_path=esgpull_path,
         concat_dims="experiment_id",
         engine="esgf",
         index_node=index_node,
+        download=download,
+        chunks={},
     )
+    assert (esgpull_path / "data" / "CMIP6").exists() is download
+
     assert ds.sizes == {
         "experiment_id": 2,
         "time": 24,

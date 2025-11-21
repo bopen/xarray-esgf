@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from pathlib import Path
 from typing import Any
 
 from xarray import Dataset
@@ -13,9 +14,11 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
         filename_or_obj: dict[str, str | list[str]],
         *,
         drop_variables: str | Iterable[str] | None = None,
-        esgpull_path: str | None = None,
+        esgpull_path: str | Path | None = None,
         index_node: str | None = None,
         concat_dims: DATASET_ID_KEYS | Iterable[DATASET_ID_KEYS] | None = None,
+        download: bool = False,
+        show_progress: bool = True,
     ) -> Dataset:
         client = Client(
             selection=filename_or_obj,
@@ -25,6 +28,8 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
         return client.open_dataset(
             concat_dims=concat_dims,
             drop_variables=drop_variables,
+            download=download,
+            show_progress=show_progress,
         )
 
     open_dataset_parameters = (

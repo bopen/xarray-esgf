@@ -15,9 +15,12 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
+    "aiohttp",
     "dask",
     "esgpull>=0.9.3",
     "h5netcdf",
+    "requests",
+    "tqdm",
     "xarray",
 ]
 
@@ -36,6 +39,7 @@ dev = [
     "tox-uv>=1.11.3",
     "mypy>=0.991",
     "ruff>=0.11.5",
+    "types-tqdm>=4.67.0.20250809",
 ]
 
 [build-system]

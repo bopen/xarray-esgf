@@ -22,6 +22,7 @@ ds = xr.open_dataset(
     esgpull_path=ESGPULL_PATH,
     index_node="esgf.ceda.ac.uk",
     engine="esgf",
+    download=False,  # If True, download; if False, access remote files
 )
 ```
 

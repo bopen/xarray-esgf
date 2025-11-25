@@ -44,6 +44,7 @@ class Client:
     selection: dict[str, str | list[str]]
     esgpull_path: str | Path | None = None
     index_node: str | None = None
+    n_tries: int = 1
 
     @cached_property
     def _client(self) -> Esgpull:
@@ -75,9 +76,15 @@ class Client:
         ]
 
     def download(self) -> list[File]:
-        downloaded, errors = asyncio.run(
-            self._client.download(self.missing_files, use_db=False)
-        )
+        files = []
+        for _ in range(self.n_tries):
+            downloaded, errors = asyncio.run(
+                self._client.download(self.missing_files, use_db=False)
+            )
+            files.extend(downloaded)
+            if not errors:
+                break
+
         exceptions = []
         for error in errors:
             err = error.err
@@ -86,7 +93,7 @@ class Client:
         if exceptions:
             msg = "Download errors"
             raise ExceptionGroup(msg, exceptions)
-        return downloaded
+        return files
 
     @use_new_combine_kwarg_defaults
     def open_dataset(

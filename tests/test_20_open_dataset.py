@@ -4,7 +4,7 @@ import pytest
 import xarray as xr
 
 
-@pytest.mark.parametrize("download", [False])
+@pytest.mark.parametrize("download", [True, False])
 def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
     esgpull_path = tmp_path / "esgpull"
     selection = {

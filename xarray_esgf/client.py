@@ -44,7 +44,7 @@ class Client:
     selection: dict[str, str | list[str]]
     esgpull_path: str | Path | None = None
     index_node: str | None = None
-    n_tries: int = 1
+    retries: int = 0
 
     @cached_property
     def _client(self) -> Esgpull:
@@ -64,6 +64,10 @@ class Client:
             selection=self.selection,
             options={"distrib": True, "latest": True},
         )
+
+    @cached_property
+    def n_tries(self) -> int:
+        return self.retries + 1 if self.retries >= 0 else 1
 
     @cached_property
     def files(self) -> list[File]:

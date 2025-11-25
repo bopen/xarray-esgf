@@ -48,7 +48,11 @@ class Client:
 
     @cached_property
     def _client(self) -> Esgpull:
-        client = Esgpull(path=self.esgpull_path, install=True)
+        client = Esgpull(
+            path=self.esgpull_path,
+            install=True,
+            load_db=False,
+        )
         client.config.download.disable_ssl = True
         if self.index_node is not None:
             client.config.api.index_node = self.index_node

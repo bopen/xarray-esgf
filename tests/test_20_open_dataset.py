@@ -54,3 +54,21 @@ def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
         "CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp585.r1i1p1f1.Amon.pr.gr.v20210113",
         "CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp585.r1i1p1f1.Amon.tas.gr.v20210113",
     ]
+
+
+def test_open_dataset_check_dims(tmp_path: Path) -> None:
+    esgpull_path = tmp_path / "esgpull"
+    selection = {
+        "query": [
+            '"tos_Amon_EC-Earth3-CC_ssp245_r1i1p1f1_gr_201501-201512.nc"',
+            '"tos_Omon_EC-Earth3-CC_ssp245_r1i1p1f1_gn_201501-201512.nc"',
+        ]
+    }
+    with pytest.raises(ValueError, match="Dimensions do not match"):
+        xr.open_dataset(
+            selection,  # type: ignore[arg-type]
+            esgpull_path=esgpull_path,
+            engine="esgf",
+            download=True,
+            chunks={},
+        )

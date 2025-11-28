@@ -39,6 +39,14 @@ def dataset_id_to_dict(dataset_id: str) -> dict[DATASET_ID_KEYS, str]:
     return dict(zip(keys, dataset_id.split("."), strict=True))
 
 
+def check_dimensions(datasets: dict[str, Dataset]) -> None:
+    dimensions = {k: tuple(set(v.dims)) for k, v in datasets.items()}
+    if len(set(dimensions.values())) > 1:
+        msg = "Dimensions do not match.\n"
+        msg += "\n".join({f"{k}: {v}" for k, v in dimensions.items()})
+        raise ValueError(msg)
+
+
 @dataclasses.dataclass
 class Client:
     selection: dict[str, str | list[str]]
@@ -130,7 +138,7 @@ class Client:
             )
             grouped_objects[file.dataset_id].append(ds)
 
-        combined_datasets = []
+        combined_datasets = {}
         for dataset_id, datasets in grouped_objects.items():
             dataset_id_dict = dataset_id_to_dict(dataset_id)
             ds = xr.concat(
@@ -145,10 +153,12 @@ class Client:
             ds = ds.set_coords([
                 name for name, da in ds.variables.items() if "bnds" in da.dims
             ])
-            combined_datasets.append(ds)
+            combined_datasets[dataset_id] = ds
+
+        check_dimensions(combined_datasets)
 
         obj = xr.combine_by_coords(
-            combined_datasets,
+            combined_datasets.values(),
             join="exact",
             combine_attrs="drop_conflicts",
         )

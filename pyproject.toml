@@ -61,6 +61,7 @@ warn_unused_ignores = true
 show_error_codes = true
 
 [tool.pytest.ini_options]
+addopts = ["-vv"]
 testpaths = ["tests"]
 
 [tool.ruff]

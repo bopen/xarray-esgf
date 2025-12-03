@@ -30,6 +30,7 @@ def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
     )
     assert (esgpull_path / "data" / "CMIP6").exists() is download
 
+    # Dims
     assert ds.sizes == {
         "experiment_id": 2,
         "time": 24,
@@ -37,6 +38,8 @@ def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
         "lat": 256,
         "lon": 512,
     }
+
+    # Coords
     assert set(ds.coords) == {
         "experiment_id",
         "height",
@@ -47,7 +50,17 @@ def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
         "time",
         "time_bnds",
     }
+    assert set(ds[["lat_bnds", "lon_bnds", "time_bnds"]].dims) == {
+        "bnds",
+        "lat",
+        "lon",
+        "time",
+    }
+
+    # Data vars
     assert set(ds.data_vars) == {"tas", "pr"}
+
+    # Attributes
     assert ds.dataset_ids == [
         "CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp245.r1i1p1f1.Amon.pr.gr.v20210113",
         "CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp245.r1i1p1f1.Amon.tas.gr.v20210113",

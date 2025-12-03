@@ -149,10 +149,10 @@ class Client:
                 compat="override",
                 combine_attrs="drop_conflicts",
             )
-            ds = ds.expand_dims({dim: [dataset_id_dict[dim]] for dim in concat_dims})
             ds = ds.set_coords([
                 name for name, da in ds.variables.items() if "bnds" in da.dims
             ])
+            ds = ds.expand_dims({dim: [dataset_id_dict[dim]] for dim in concat_dims})
             combined_datasets[dataset_id] = ds
 
         check_dimensions(combined_datasets)

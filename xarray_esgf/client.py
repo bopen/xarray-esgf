@@ -141,21 +141,24 @@ class Client:
         combined_datasets = {}
         for dataset_id, datasets in grouped_objects.items():
             dataset_id_dict = dataset_id_to_dict(dataset_id)
-            ds = xr.concat(
-                datasets,
-                dim="time",
-                data_vars="minimal",
-                coords="minimal",
-                compat="override",
-                combine_attrs="drop_conflicts",
-            )
+            if len(datasets) == 1:
+                (ds,) = datasets
+            else:
+                ds = xr.concat(
+                    datasets,
+                    dim="time",
+                    data_vars="minimal",
+                    coords="minimal",
+                    compat="override",
+                    combine_attrs="drop_conflicts",
+                )
             ds = ds.set_coords([
-                name for name, da in ds.variables.items() if "bnds" in da.dims
+                name
+                for name, da in ds.variables.items()
+                if "bnds" in da.dims or "time" not in da.dims
             ])
             ds = ds.expand_dims({dim: [dataset_id_dict[dim]] for dim in concat_dims})
             combined_datasets[dataset_id] = ds
-
-        check_dimensions(combined_datasets)
 
         obj = xr.combine_by_coords(
             combined_datasets.values(),

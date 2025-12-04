@@ -17,6 +17,8 @@ def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
             '"pr_Amon_EC-Earth3-CC_ssp245_r1i1p1f1_gr_202001-202012.nc"',
             '"pr_Amon_EC-Earth3-CC_ssp585_r1i1p1f1_gr_201901-201912.nc"',
             '"pr_Amon_EC-Earth3-CC_ssp585_r1i1p1f1_gr_202001-202012.nc"',
+            '"CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp245.r1i1p1f1.fx.areacella.gr.v20210113.areacella_fx_EC-Earth3-CC_ssp245_r1i1p1f1_gr.nc"',
+            '"CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp585.r1i1p1f1.fx.areacella.gr.v20210113.areacella_fx_EC-Earth3-CC_ssp585_r1i1p1f1_gr.nc"',
         ]
     }
     ds = xr.open_dataset(
@@ -41,6 +43,7 @@ def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
 
     # Coords
     assert set(ds.coords) == {
+        "areacella",
         "experiment_id",
         "height",
         "lat",
@@ -50,12 +53,11 @@ def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
         "time",
         "time_bnds",
     }
-    assert set(ds[["lat_bnds", "lon_bnds", "time_bnds"]].dims) == {
-        "bnds",
-        "lat",
-        "lon",
-        "time",
-    }
+    assert all(
+        "experiment_id" not in coord.dims
+        for name, coord in ds.coords.items()
+        if name != "experiment_id"
+    )
 
     # Data vars
     assert set(ds.data_vars) == {"tas", "pr"}
@@ -64,24 +66,8 @@ def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
     assert ds.dataset_ids == [
         "CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp245.r1i1p1f1.Amon.pr.gr.v20210113",
         "CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp245.r1i1p1f1.Amon.tas.gr.v20210113",
+        "CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp245.r1i1p1f1.fx.areacella.gr.v20210113",
         "CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp585.r1i1p1f1.Amon.pr.gr.v20210113",
         "CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp585.r1i1p1f1.Amon.tas.gr.v20210113",
+        "CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp585.r1i1p1f1.fx.areacella.gr.v20210113",
     ]
-
-
-def test_open_dataset_check_dims(tmp_path: Path) -> None:
-    esgpull_path = tmp_path / "esgpull"
-    selection = {
-        "query": [
-            '"tos_Amon_EC-Earth3-CC_ssp245_r1i1p1f1_gr_201501-201512.nc"',
-            '"tos_Omon_EC-Earth3-CC_ssp245_r1i1p1f1_gn_201501-201512.nc"',
-        ]
-    }
-    with pytest.raises(ValueError, match="Dimensions do not match"):
-        xr.open_dataset(
-            selection,  # type: ignore[arg-type]
-            esgpull_path=esgpull_path,
-            engine="esgf",
-            download=True,
-            chunks={},
-        )

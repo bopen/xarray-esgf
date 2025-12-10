@@ -30,7 +30,19 @@ def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
         download=download,
         chunks={},
     )
+
     assert (esgpull_path / "data" / "CMIP6").exists() is download
+
+    # Chunks
+    for dim in ds.dims:
+        assert not ds[dim].chunks
+    assert ds.chunksizes == {
+        "experiment_id": (1, 1),
+        "time": (12, 12),
+        "lat": (256,),
+        "lon": (512,),
+        "bnds": (2,),
+    }
 
     # Dims
     assert ds.sizes == {

@@ -17,6 +17,7 @@ classifiers = [
 ]
 dependencies = [
     "aiohttp",
+    "cftime",
     "dask",
     "esgpull>=0.9.3",
     "h5netcdf",

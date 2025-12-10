@@ -132,11 +132,11 @@ class Client:
         ):
             ds = xr.open_dataset(
                 self._client.fs[file].drs if download else file.url,
-                chunks={},
+                chunks=-1,
                 engine="h5netcdf",
                 drop_variables=drop_variables,
             )
-            grouped_objects[file.dataset_id].append(ds)
+            grouped_objects[file.dataset_id].append(ds.drop_encoding())
 
         combined_datasets = {}
         for dataset_id, datasets in grouped_objects.items():
@@ -168,4 +168,9 @@ class Client:
         if isinstance(obj, DataArray):
             obj = obj.to_dataset()
         obj.attrs["dataset_ids"] = sorted(grouped_objects)
+
+        for name, var in obj.variables.items():
+            if name not in obj.dims:
+                var.encoding["preferred_chunks"] = dict(var.chunksizes)
+
         return obj

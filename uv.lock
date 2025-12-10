@@ -1963,7 +1963,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp" },
-    { name = "cftime", specifier = ">=1.6.5" },
+    { name = "cftime" },
     { name = "dask" },
     { name = "esgpull", specifier = ">=0.9.3" },
     { name = "h5netcdf" },

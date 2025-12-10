@@ -132,7 +132,6 @@ class Client:
         ):
             ds = xr.open_dataset(
                 self._client.fs[file].drs if download else file.url,
-                chunks=-1,
                 engine="h5netcdf",
                 drop_variables=drop_variables,
             )
@@ -171,6 +170,9 @@ class Client:
 
         for name, var in obj.variables.items():
             if name not in obj.dims:
-                var.encoding["preferred_chunks"] = dict(var.chunksizes)
+                var.encoding["preferred_chunks"] = {
+                    dim: (1,) * var.sizes[dim]
+                    for dim in set(var.dims) & set(concat_dims)
+                }
 
         return obj

@@ -21,6 +21,8 @@ dependencies = [
     "dask",
     "esgpull>=0.9.3",
     "h5netcdf",
+    "jinja2",  # See: https://github.com/pydap/pydap/issues/596
+    "pydap",
     "requests",
     "tqdm",
     "xarray",

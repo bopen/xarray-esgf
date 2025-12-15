@@ -18,6 +18,7 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
         index_node: str | None = None,
         concat_dims: DATASET_ID_KEYS | Iterable[DATASET_ID_KEYS] | None = None,
         download: bool = False,
+        use_pydap: bool = False,
         show_progress: bool = True,
         retries: int = 0,
     ) -> Dataset:
@@ -31,6 +32,7 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
             concat_dims=concat_dims,
             drop_variables=drop_variables,
             download=download,
+            use_pydap=use_pydap,
             show_progress=show_progress,
         )
 

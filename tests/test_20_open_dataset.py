@@ -83,3 +83,31 @@ def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
         "CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp585.r1i1p1f1.Amon.tas.gr.v20210113",
         "CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp585.r1i1p1f1.fx.areacella.gr.v20210113",
     ]
+
+
+def test_open_dataset_identical(tmp_path: Path, index_node: str) -> None:
+    esgpull_path = tmp_path / "esgpull"
+    selection = {
+        "query": [
+            '"tas_Amon_EC-Earth3-CC_ssp245_r1i1p1f1_gr_201901-201912.nc"',
+        ]
+    }
+    ds_pydap = xr.open_dataset(
+        selection,  # type: ignore[arg-type]
+        esgpull_path=esgpull_path,
+        engine="esgf",
+        index_node=index_node,
+        download=False,
+        chunks={},
+        use_pydap=True,
+    )
+    ds_h5netcdf = xr.open_dataset(
+        selection,  # type: ignore[arg-type]
+        esgpull_path=esgpull_path,
+        engine="esgf",
+        index_node=index_node,
+        download=False,
+        chunks={},
+        use_pydap=False,
+    )
+    xr.testing.assert_identical(ds_pydap, ds_h5netcdf)

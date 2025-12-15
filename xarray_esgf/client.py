@@ -25,6 +25,11 @@ DATASET_ID_KEYS = Literal[
     "version",
 ]
 
+PYDAP_GLOBAL_ATTRS = ["Unlimited_Dimension"]
+PYDAP_PREFIXES = {
+    "https://esgf.ceda.ac.uk/thredds/fileServer/": "dap2://esgf.ceda.ac.uk/thredds/dodsC/",
+}
+
 
 def use_new_combine_kwarg_defaults[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     def wrapper(*args: P.args, **kwds: P.kwargs) -> T:
@@ -45,6 +50,17 @@ def check_dimensions(datasets: dict[str, Dataset]) -> None:
         msg = "Dimensions do not match.\n"
         msg += "\n".join({f"{k}: {v}" for k, v in dimensions.items()})
         raise ValueError(msg)
+
+
+def pop_pydap_attrs(ds: Dataset) -> None:
+    for key in PYDAP_GLOBAL_ATTRS:
+        if key in ds.attrs:
+            ds.attrs.pop(key)
+
+    for da in ds.variables.values():
+        for key in list(da.attrs):
+            if key.startswith("_"):
+                da.attrs.pop(key)
 
 
 @dataclasses.dataclass
@@ -111,14 +127,31 @@ class Client:
             raise ExceptionGroup(msg, exceptions)
         return files
 
+    def get_filename(self, file: File, download: bool, use_pydap: bool) -> str:
+        if download and use_pydap:
+            msg = "download and use_pydap are mutually exclusive."
+            raise ValueError(msg)
+
+        filename = str(self._client.fs[file].drs if download else file.url)
+        if use_pydap:
+            for k, v in PYDAP_PREFIXES.items():
+                if filename.startswith(k):
+                    filename = filename.replace(k, v)
+                    break
+            else:
+                filename = filename.replace("fileServer", "dodsC")
+        return filename
+
     @use_new_combine_kwarg_defaults
     def open_dataset(
         self,
         concat_dims: DATASET_ID_KEYS | Iterable[DATASET_ID_KEYS] | None,
         drop_variables: str | Iterable[str] | None = None,
         download: bool = False,
+        use_pydap: bool = False,
         show_progress: bool = True,
     ) -> Dataset:
+
         if isinstance(concat_dims, str):
             concat_dims = [concat_dims]
         concat_dims = concat_dims or []
@@ -131,11 +164,12 @@ class Client:
             self.files, disable=not show_progress, desc="Opening datasets"
         ):
             ds = xr.open_dataset(
-                self._client.fs[file].drs if download else file.url,
+                self.get_filename(file, download=download, use_pydap=use_pydap),
                 chunks=-1,
-                engine="h5netcdf",
+                engine="pydap" if use_pydap else "h5netcdf",
                 drop_variables=drop_variables,
             )
+            pop_pydap_attrs(ds)
             grouped_objects[file.dataset_id].append(ds.drop_encoding())
 
         combined_datasets = {}

@@ -1,5 +1,6 @@
 import asyncio
 import dataclasses
+import logging
 from collections import defaultdict
 from collections.abc import Callable, Iterable
 from functools import cached_property
@@ -24,6 +25,8 @@ DATASET_ID_KEYS = Literal[
     "grid_label",
     "version",
 ]
+
+LOGGER = logging.getLogger()
 
 
 def use_new_combine_kwarg_defaults[**P, T](func: Callable[P, T]) -> Callable[P, T]:
@@ -159,6 +162,7 @@ class Client:
             ])
             ds = ds.expand_dims({dim: [dataset_id_dict[dim]] for dim in concat_dims})
             combined_datasets[dataset_id] = ds
+            LOGGER.debug(f"{dataset_id}: {dict(ds.sizes)}")
 
         obj = xr.combine_by_coords(
             combined_datasets.values(),

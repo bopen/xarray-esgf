@@ -18,6 +18,7 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
         index_node: str | None = None,
         retries: int = 0,
         check_files: bool = True,
+        verify_ssl: bool = False,
         concat_dims: DATASET_ID_KEYS | Iterable[DATASET_ID_KEYS] | None = None,
         download: bool = False,
         show_progress: bool = True,
@@ -28,6 +29,7 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
             index_node=index_node,
             retries=retries,
             check_files=check_files,
+            verify_ssl=verify_ssl,
         )
         return client.open_dataset(
             concat_dims=concat_dims,

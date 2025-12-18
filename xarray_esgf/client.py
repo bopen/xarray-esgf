@@ -57,6 +57,7 @@ class Client:
     index_node: str | None = None
     retries: int = 0
     check_files: bool = True
+    verify_ssl: bool = False
 
     @cached_property
     def _client(self) -> Esgpull:
@@ -65,7 +66,7 @@ class Client:
             install=True,
             load_db=False,
         )
-        client.config.download.disable_ssl = True
+        client.config.download.disable_ssl = not self.verify_ssl
         if self.index_node is not None:
             client.config.api.index_node = self.index_node
         return client
@@ -144,6 +145,7 @@ class Client:
                 chunks=-1,
                 engine="h5netcdf",
                 drop_variables=drop_variables,
+                storage_options={"verify_ssl": self.verify_ssl},
             )
             grouped_objects[file.dataset_id].append(ds.drop_encoding())
 

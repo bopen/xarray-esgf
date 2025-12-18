@@ -56,6 +56,7 @@ class Client:
     esgpull_path: str | Path | None = None
     index_node: str | None = None
     retries: int = 0
+    check_files: bool = True
     verify_ssl: bool = False
 
     @cached_property
@@ -91,9 +92,14 @@ class Client:
 
     @property
     def missing_files(self) -> list[File]:
-        return [
-            file for file in self.files if self._client.fs.check(file) != FileCheck.Ok
-        ]
+        missing_files = []
+        for file in tqdm.tqdm(self.files, desc="Looking for missing files:"):
+            file_path = Path(str(self._client.fs[file]))
+            if (self.check_files and self._client.fs.check(file) != FileCheck.Ok) or (
+                not self.check_files and not file_path.exists()
+            ):
+                missing_files.append(file)
+        return missing_files
 
     def download(self) -> list[File]:
         files = []

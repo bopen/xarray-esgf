@@ -93,7 +93,7 @@ class Client:
     @property
     def missing_files(self) -> list[File]:
         missing_files = []
-        for file in tqdm.tqdm(self.files, desc="Looking for missing files:"):
+        for file in tqdm.tqdm(self.files, desc="Looking for missing files"):
             file_path = Path(str(self._client.fs[file]))
             if (self.check_files and self._client.fs.check(file) != FileCheck.Ok) or (
                 not self.check_files and not file_path.exists()

@@ -16,16 +16,18 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
         drop_variables: str | Iterable[str] | None = None,
         esgpull_path: str | Path | None = None,
         index_node: str | None = None,
+        retries: int = 0,
+        check_files: bool = True,
         concat_dims: DATASET_ID_KEYS | Iterable[DATASET_ID_KEYS] | None = None,
         download: bool = False,
         show_progress: bool = True,
-        retries: int = 0,
     ) -> Dataset:
         client = Client(
             selection=filename_or_obj,
             esgpull_path=esgpull_path,
             index_node=index_node,
             retries=retries,
+            check_files=check_files,
         )
         return client.open_dataset(
             concat_dims=concat_dims,

@@ -20,12 +20,14 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
         download: bool = False,
         show_progress: bool = True,
         retries: int = 0,
+        verify_ssl: bool = False,
     ) -> Dataset:
         client = Client(
             selection=filename_or_obj,
             esgpull_path=esgpull_path,
             index_node=index_node,
             retries=retries,
+            verify_ssl=verify_ssl,
         )
         return client.open_dataset(
             concat_dims=concat_dims,

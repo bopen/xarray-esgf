@@ -42,14 +42,6 @@ def dataset_id_to_dict(dataset_id: str) -> dict[DATASET_ID_KEYS, str]:
     return dict(zip(keys, dataset_id.split("."), strict=True))
 
 
-def check_dimensions(datasets: dict[str, Dataset]) -> None:
-    dimensions = {k: tuple(set(v.dims)) for k, v in datasets.items()}
-    if len(set(dimensions.values())) > 1:
-        msg = "Dimensions do not match.\n"
-        msg += "\n".join({f"{k}: {v}" for k, v in dimensions.items()})
-        raise ValueError(msg)
-
-
 @dataclasses.dataclass
 class Client:
     selection: dict[str, str | list[str]]

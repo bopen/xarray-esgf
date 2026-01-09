@@ -83,3 +83,23 @@ def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
         "CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp585.r1i1p1f1.Amon.tas.gr.v20210113",
         "CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp585.r1i1p1f1.fx.areacella.gr.v20210113",
     ]
+
+
+def test_combine_coords(tmp_path: Path, index_node: str) -> None:
+    esgpull_path = tmp_path / "esgpull"
+    selection = {
+        "query": [
+            '"areacella_fx_IPSL-CM6A-LR_historical_r1i1p1f1_gr.nc"',
+            '"orog_fx_IPSL-CM6A-LR_historical_r1i1p1f1_gr.nc"',
+        ]
+    }
+    ds = xr.open_dataset(
+        selection,  # type: ignore[arg-type]
+        esgpull_path=esgpull_path,
+        concat_dims="experiment_id",
+        engine="esgf",
+        index_node=index_node,
+        chunks={},
+    )
+    assert set(ds.coords) == {"areacella", "lat", "lon", "experiment_id", "orog"}
+    assert not ds.data_vars

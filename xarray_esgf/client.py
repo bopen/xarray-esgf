@@ -2,7 +2,7 @@ import asyncio
 import dataclasses
 import logging
 from collections import defaultdict
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Hashable, Iterable
 from functools import cached_property
 from pathlib import Path
 from typing import Literal, get_args
@@ -114,14 +114,13 @@ class Client:
             raise ExceptionGroup(msg, exceptions)
         return files
 
-    @use_new_combine_kwarg_defaults
-    def open_dataset(
+    def _open_datasets(
         self,
         concat_dims: DATASET_ID_KEYS | Iterable[DATASET_ID_KEYS] | None,
         drop_variables: str | Iterable[str] | None = None,
         download: bool = False,
         show_progress: bool = True,
-    ) -> Dataset:
+    ) -> dict[str, Dataset]:
         if isinstance(concat_dims, str):
             concat_dims = [concat_dims]
         concat_dims = concat_dims or []
@@ -138,7 +137,7 @@ class Client:
                 chunks=-1,
                 engine="h5netcdf",
                 drop_variables=drop_variables,
-                storage_options={"verify_ssl": self.verify_ssl},
+                storage_options={"ssl": self.verify_ssl},
             )
             grouped_objects[file.dataset_id].append(ds.drop_encoding())
 
@@ -165,17 +164,37 @@ class Client:
             combined_datasets[dataset_id] = ds
             LOGGER.debug(f"{dataset_id}: {dict(ds.sizes)}")
 
+        return combined_datasets
+
+    @use_new_combine_kwarg_defaults
+    def open_dataset(
+        self,
+        concat_dims: DATASET_ID_KEYS | Iterable[DATASET_ID_KEYS] | None,
+        drop_variables: str | Iterable[str] | None = None,
+        download: bool = False,
+        show_progress: bool = True,
+    ) -> Dataset:
+        combined_datasets = self._open_datasets(
+            concat_dims, drop_variables, download, show_progress
+        )
+
         obj = xr.combine_by_coords(
-            combined_datasets.values(),
+            [ds.reset_coords() for ds in combined_datasets.values()],
             join="exact",
             combine_attrs="drop_conflicts",
         )
         if isinstance(obj, DataArray):
             obj = obj.to_dataset()
-        obj.attrs["dataset_ids"] = sorted(grouped_objects)
+
+        coords: set[Hashable] = set()
+        for ds in combined_datasets.values():
+            coords.update(ds.coords)
+        obj = obj.set_coords(coords)
 
         for name, var in obj.variables.items():
             if name not in obj.dims:
                 var.encoding["preferred_chunks"] = dict(var.chunksizes)
+
+        obj.attrs["dataset_ids"] = sorted(combined_datasets)
 
         return obj

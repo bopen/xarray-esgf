@@ -159,7 +159,7 @@ class Client:
             ds = ds.set_coords([
                 name
                 for name, da in ds.variables.items()
-                if set(da.dims) & BOUNDS_DIMS or "time" not in da.dims
+                if BOUNDS_DIMS.intersection(da.dims) or "time" not in da.dims
             ])
             ds = ds.expand_dims({dim: [dataset_id_dict[dim]] for dim in concat_dims})
             combined_datasets[dataset_id] = ds

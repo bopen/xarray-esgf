@@ -25,6 +25,7 @@ DATASET_ID_KEYS = Literal[
     "grid_label",
     "version",
 ]
+BOUNDS_DIMS = {"bnds", "axis_nbounds"}
 
 LOGGER = logging.getLogger()
 
@@ -158,7 +159,7 @@ class Client:
             ds = ds.set_coords([
                 name
                 for name, da in ds.variables.items()
-                if "bnds" in da.dims or "time" not in da.dims
+                if BOUNDS_DIMS.intersection(da.dims) or "time" not in da.dims
             ])
             ds = ds.expand_dims({dim: [dataset_id_dict[dim]] for dim in concat_dims})
             combined_datasets[dataset_id] = ds

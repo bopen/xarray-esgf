@@ -140,6 +140,7 @@ class Client:
                 storage_options={"ssl": self.verify_ssl},
             )
             grouped_objects[file.dataset_id].append(ds.drop_encoding())
+
         combined_datasets = {}
         for dataset_id, datasets in grouped_objects.items():
             dataset_id_dict = dataset_id_to_dict(dataset_id)

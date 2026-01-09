@@ -63,6 +63,9 @@ show_error_codes = true
 
 [tool.pytest.ini_options]
 addopts = ["-vv"]
+filterwarnings = [
+    "ignore:.*Using unknown location.*:UserWarning:esgpull",
+]
 testpaths = ["tests"]
 
 [tool.ruff]

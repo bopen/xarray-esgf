@@ -19,7 +19,7 @@ dependencies = [
     "aiohttp",
     "cftime",
     "dask",
-    "esgpull>=0.9.3",
+    "esgpull>=0.9.4",
     "h5netcdf",
     "requests",
     "tqdm",

@@ -1,4 +1,6 @@
+from collections.abc import Hashable
 from pathlib import Path
+from typing import Any
 
 import pytest
 import xarray as xr
@@ -103,3 +105,34 @@ def test_combine_coords(tmp_path: Path, index_node: str) -> None:
     )
     assert set(ds.coords) == {"areacella", "lat", "lon", "experiment_id", "orog"}
     assert not ds.data_vars
+
+
+@pytest.mark.parametrize(
+    "sel,expected_size",
+    [
+        ({}, 12),
+        ({"time": "2019-01"}, 1),
+        ({"time": {"slice": ["2019-01", "2019-02"]}}, 2),
+    ],
+)
+def test_time_selection(
+    tmp_path: Path,
+    index_node: str,
+    sel: dict[Hashable, Any],
+    expected_size: int,
+) -> None:
+    esgpull_path = tmp_path / "esgpull"
+    selection = {
+        "query": [
+            '"tas_Amon_EC-Earth3-CC_ssp245_r1i1p1f1_gr_201901-201912.nc"',
+        ]
+    }
+    ds = xr.open_dataset(
+        selection,  # type: ignore[arg-type]
+        esgpull_path=esgpull_path,
+        engine="esgf",
+        index_node=index_node,
+        chunks={},
+        sel=sel,
+    )
+    assert ds.sizes["time"] == expected_size

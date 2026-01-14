@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Hashable, Iterable
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +22,7 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
         concat_dims: DATASET_ID_KEYS | Iterable[DATASET_ID_KEYS] | None = None,
         download: bool = False,
         show_progress: bool = True,
+        sel: dict[Hashable, Any] | None = None,
     ) -> Dataset:
         client = Client(
             selection=filename_or_obj,
@@ -36,6 +37,7 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
             drop_variables=drop_variables,
             download=download,
             show_progress=show_progress,
+            sel=sel,
         )
 
     open_dataset_parameters = (

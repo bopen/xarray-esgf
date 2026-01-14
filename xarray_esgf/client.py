@@ -5,7 +5,7 @@ from collections import defaultdict
 from collections.abc import Callable, Hashable, Iterable
 from functools import cached_property
 from pathlib import Path
-from typing import Literal, get_args
+from typing import Any, Literal, get_args
 
 import tqdm
 import xarray as xr
@@ -117,10 +117,15 @@ class Client:
     def _open_datasets(
         self,
         concat_dims: DATASET_ID_KEYS | Iterable[DATASET_ID_KEYS] | None,
-        drop_variables: str | Iterable[str] | None = None,
-        download: bool = False,
-        show_progress: bool = True,
+        drop_variables: str | Iterable[str] | None,
+        download: bool,
+        show_progress: bool,
+        sel: dict[Hashable, Any],
     ) -> dict[str, Dataset]:
+        sel = {
+            k: slice(*v["slice"]) if isinstance(v, dict) else v for k, v in sel.items()
+        }
+
         if isinstance(concat_dims, str):
             concat_dims = [concat_dims]
         concat_dims = concat_dims or []
@@ -139,6 +144,7 @@ class Client:
                 drop_variables=drop_variables,
                 storage_options={"ssl": self.verify_ssl},
             )
+            ds = ds.sel({k: v for k, v in sel.items() if k in ds.dims})
             grouped_objects[file.dataset_id].append(ds.drop_encoding())
 
         combined_datasets = {}
@@ -173,9 +179,14 @@ class Client:
         drop_variables: str | Iterable[str] | None = None,
         download: bool = False,
         show_progress: bool = True,
+        sel: dict[Hashable, Any] | None = None,
     ) -> Dataset:
         combined_datasets = self._open_datasets(
-            concat_dims, drop_variables, download, show_progress
+            concat_dims=concat_dims,
+            drop_variables=drop_variables,
+            download=download,
+            show_progress=show_progress,
+            sel=sel or {},
         )
 
         obj = xr.combine_by_coords(

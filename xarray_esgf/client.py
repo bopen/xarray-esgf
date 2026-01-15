@@ -25,7 +25,7 @@ DATASET_ID_KEYS = Literal[
     "grid_label",
     "version",
 ]
-BOUNDS_DIMS = {"bnds", "axis_nbounds"}
+BOUNDS_DIMS = {"axis_nbounds", "bnds", "nbnd"}
 
 LOGGER = logging.getLogger()
 

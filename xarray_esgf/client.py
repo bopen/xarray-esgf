@@ -144,7 +144,9 @@ class Client:
                 drop_variables=drop_variables,
                 storage_options={"ssl": self.verify_ssl},
             )
-            grouped_objects[file.dataset_id].append(ds.drop_encoding())
+            ds = ds.sel({k: v for k, v in sel.items() if k in ds.dims})
+            if all(ds.sizes.values()):
+                grouped_objects[file.dataset_id].append(ds.drop_encoding())
 
         combined_datasets = {}
         for dataset_id, datasets in grouped_objects.items():
@@ -166,7 +168,6 @@ class Client:
                 if BOUNDS_DIMS.intersection(da.dims) or "time" not in da.dims
             ])
             ds = ds.expand_dims({dim: [dataset_id_dict[dim]] for dim in concat_dims})
-            ds = ds.sel({k: v for k, v in sel.items() if k in ds.dims})
             combined_datasets[dataset_id] = ds
             LOGGER.debug(f"{dataset_id}: {dict(ds.sizes)}")
 

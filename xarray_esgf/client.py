@@ -43,6 +43,17 @@ def dataset_id_to_dict(dataset_id: str) -> dict[DATASET_ID_KEYS, str]:
     return dict(zip(keys, dataset_id.split("."), strict=True))
 
 
+def combine_datasets(datasets: list[Dataset]) -> Dataset:
+    obj = xr.combine_by_coords(
+        datasets,
+        join="exact",
+        combine_attrs="drop_conflicts",
+    )
+    if isinstance(obj, DataArray):
+        obj = obj.to_dataset()
+    return obj
+
+
 @dataclasses.dataclass
 class Client:
     selection: dict[str, str | list[str]]
@@ -154,14 +165,7 @@ class Client:
             if len(datasets) == 1:
                 (ds,) = datasets
             else:
-                ds = xr.concat(
-                    datasets,
-                    dim="time",
-                    data_vars="minimal",
-                    coords="minimal",
-                    compat="override",
-                    combine_attrs="drop_conflicts",
-                )
+                ds = combine_datasets(datasets)
             ds = ds.set_coords([
                 name
                 for name, da in ds.variables.items()
@@ -190,13 +194,7 @@ class Client:
             sel=sel or {},
         )
 
-        obj = xr.combine_by_coords(
-            [ds.reset_coords() for ds in combined_datasets.values()],
-            join="exact",
-            combine_attrs="drop_conflicts",
-        )
-        if isinstance(obj, DataArray):
-            obj = obj.to_dataset()
+        obj = combine_datasets([ds.reset_coords() for ds in combined_datasets.values()])
 
         coords: set[Hashable] = set()
         for ds in combined_datasets.values():

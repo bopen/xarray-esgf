@@ -50,7 +50,7 @@ def combine_datasets(datasets: list[Dataset]) -> Dataset:
         combine_attrs="drop_conflicts",
     )
     if isinstance(obj, DataArray):
-        obj = obj.to_dataset()
+        return obj.to_dataset()
     return obj
 
 

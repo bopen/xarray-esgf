@@ -20,7 +20,7 @@ dependencies = [
     "cftime",
     "dask",
     "esgpull>=0.9.4",
-    "h5netcdf",
+    "h5netcdf[h5py]>=1.8.0",
     "requests",
     "tqdm",
     "xarray",

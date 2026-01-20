@@ -44,7 +44,13 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
         "filename_or_obj",
         "esgpull_path",
         "index_node",
+        "retries",
+        "check_files",
+        "verify_ssl",
         "concat_dims",
+        "download",
+        "show_progress",
+        "sel",
     )
 
     def guess_can_open(self, filename_or_obj: Any) -> bool:

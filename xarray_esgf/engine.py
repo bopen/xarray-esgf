@@ -23,6 +23,7 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
         download: bool = False,
         show_progress: bool = True,
         sel: dict[Hashable, Any] | None = None,
+        ignore_spatial_coords: str | Iterable[str] | None = None,
     ) -> Dataset:
         client = Client(
             selection=filename_or_obj,
@@ -38,6 +39,7 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
             download=download,
             show_progress=show_progress,
             sel=sel,
+            ignore_spatial_coords=ignore_spatial_coords,
         )
 
     open_dataset_parameters = (
@@ -51,6 +53,7 @@ class EsgfBackendEntrypoint(BackendEntrypoint):
         "download",
         "show_progress",
         "sel",
+        "ignore_spatial_coords",
     )
 
     def guess_can_open(self, filename_or_obj: Any) -> bool:

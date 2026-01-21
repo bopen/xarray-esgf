@@ -1,9 +1,13 @@
+import contextlib
 from collections.abc import Hashable
 from pathlib import Path
 from typing import Any
 
 import pytest
 import xarray as xr
+from xarray import AlignmentError
+
+does_not_raise = contextlib.nullcontext
 
 
 @pytest.mark.parametrize("download", [True, False])
@@ -142,3 +146,36 @@ def test_time_selection(
         sel=sel,
     )
     assert ds.sizes["time"] == expected_size
+
+
+@pytest.mark.parametrize(
+    "ignore_spatial_coords, raises",
+    [
+        ("areacella", does_not_raise()),
+        (None, pytest.raises(AlignmentError)),
+    ],
+)
+def test_ignore_spatial_coords(
+    tmp_path: Path,
+    index_node: str,
+    ignore_spatial_coords: str | None,
+    raises: contextlib.nullcontext,
+) -> None:
+    esgpull_path = tmp_path / "esgpull"
+    selection = {
+        "query": [
+            '"CMIP6.CMIP.MPI-M.MPI-ESM1-2-HR.historical.r1i1p1f1.fx.areacella.gn.v20190710.areacella_fx_MPI-ESM1-2-HR_historical_r1i1p1f1_gn.nc"',
+            '"CMIP6.CMIP.MPI-M.MPI-ESM1-2-HR.historical.r1i1p1f1.Amon.tas.gn.v20190710.tas_Amon_MPI-ESM1-2-HR_historical_r1i1p1f1_gn_185001-185412.nc"',
+        ]
+    }
+
+    with raises:
+        ds = xr.open_dataset(
+            selection,  # type: ignore[arg-type]
+            esgpull_path=esgpull_path,
+            engine="esgf",
+            index_node=index_node,
+            chunks={},
+            ignore_spatial_coords=ignore_spatial_coords,
+        )
+        assert {"lat", "lon"} <= set(ds.variables)

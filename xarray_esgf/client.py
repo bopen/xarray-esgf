@@ -139,6 +139,7 @@ class Client:
         download: bool,
         show_progress: bool,
         sel: dict[Hashable, Any],
+        ignore_spatial_coords: str | Iterable[str],
     ) -> dict[str, Dataset]:
         sel = {
             k: slice(*v["slice"]) if isinstance(v, dict) else v for k, v in sel.items()
@@ -147,6 +148,10 @@ class Client:
         if isinstance(concat_dims, str):
             concat_dims = [concat_dims]
         concat_dims = concat_dims or []
+
+        if isinstance(ignore_spatial_coords, str):
+            ignore_spatial_coords = {ignore_spatial_coords}
+        ignore_spatial_coords = set(ignore_spatial_coords)
 
         if download:
             self.download()
@@ -162,7 +167,12 @@ class Client:
                 drop_variables=drop_variables,
                 storage_options={"ssl": self.verify_ssl},
             )
+
             ds = ds.sel({k: v for k, v in sel.items() if k in ds.dims})
+
+            if ignore_spatial_coords.intersection(ds.variables):
+                ds = ds.drop_vars(set(ds.variables) & {"lat", "lon"})
+
             if all(ds.sizes.values()):
                 grouped_objects[file.dataset_id].append(ds.drop_encoding())
 
@@ -192,6 +202,7 @@ class Client:
         download: bool = False,
         show_progress: bool = True,
         sel: dict[Hashable, Any] | None = None,
+        ignore_spatial_coords: str | Iterable[str] | None = None,
     ) -> Dataset:
         combined_datasets = self._open_datasets(
             concat_dims=concat_dims,
@@ -199,6 +210,7 @@ class Client:
             download=download,
             show_progress=show_progress,
             sel=sel or {},
+            ignore_spatial_coords=ignore_spatial_coords or {},
         )
 
         obj = combine_datasets([ds.reset_coords() for ds in combined_datasets.values()])

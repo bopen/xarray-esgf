@@ -11,7 +11,7 @@ import tqdm
 import xarray as xr
 from esgpull import Esgpull, File, Query
 from esgpull.fs import FileCheck
-from xarray import DataArray, Dataset
+from xarray import DataArray, Dataset, Variable
 
 DATASET_ID_KEYS = Literal[
     "project",
@@ -63,6 +63,16 @@ def move_dimensionless_coords_to_attrs(ds: Dataset) -> Dataset:
     for da in ds.data_vars.values():
         da.attrs.update(attrs)
     return ds
+
+
+def pop_attrs(obj: Dataset | DataArray | Variable, keys: str | Iterable[str]) -> None:
+    if isinstance(keys, str):
+        keys = [keys]
+    for key in keys:
+        obj.attrs.pop(key, None)
+    if isinstance(obj, Dataset):
+        for var in obj.variables.values():
+            pop_attrs(var, keys)
 
 
 @dataclasses.dataclass
@@ -211,6 +221,7 @@ class Client:
         show_progress: bool = True,
         sel: dict[Hashable, Any] | None = None,
         ignore_spatial_coords: str | Iterable[str] | None = None,
+        drop_attributes: str | Iterable[str] | None = None,
     ) -> Dataset:
         combined_datasets = self._open_datasets(
             concat_dims=concat_dims,
@@ -234,4 +245,5 @@ class Client:
 
         obj.attrs["coordinates"] = " ".join(sorted(str(coord) for coord in obj.coords))
         obj.attrs["dataset_ids"] = sorted(combined_datasets)
+        pop_attrs(obj, drop_attributes or [])
         return obj

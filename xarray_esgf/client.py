@@ -54,13 +54,6 @@ def combine_datasets(datasets: list[Dataset]) -> Dataset:
     return obj
 
 
-def add_coordinates_attr_inplace(obj: Dataset | DataArray) -> None:
-    obj.attrs["coordinates"] = " ".join(sorted(str(coord) for coord in obj.coords))
-    if isinstance(obj, Dataset):
-        for da in obj.data_vars.values():
-            add_coordinates_attr_inplace(da)
-
-
 def move_dimensionless_coords_to_attrs(ds: Dataset) -> Dataset:
     attrs = {}
     for var, da in ds.coords.items():
@@ -239,6 +232,6 @@ class Client:
             if name not in obj.dims:
                 var.encoding["preferred_chunks"] = dict(var.chunksizes)
 
-        add_coordinates_attr_inplace(obj)
+        obj.attrs["coordinates"] = " ".join(sorted(str(coord) for coord in obj.coords))
         obj.attrs["dataset_ids"] = sorted(combined_datasets)
         return obj

@@ -180,3 +180,25 @@ def test_ignore_spatial_coords(
             ignore_spatial_coords=ignore_spatial_coords,
         )
         assert {"lat", "lon"} <= set(ds.variables)
+
+
+def test_drop_attributes(
+    tmp_path: Path,
+    index_node: str,
+) -> None:
+    esgpull_path = tmp_path / "esgpull"
+    selection = {
+        "query": [
+            '"tas_Amon_EC-Earth3-CC_ssp245_r1i1p1f1_gr_201901-201912.nc"',
+        ]
+    }
+    ds = xr.open_dataset(
+        selection,  # type: ignore[arg-type]
+        esgpull_path=esgpull_path,
+        engine="esgf",
+        index_node=index_node,
+        chunks={},
+        drop_attributes=["contact", "standard_name"],
+    )
+    assert "contact" not in ds.attrs
+    assert "standard_name" not in ds["tas"].attrs

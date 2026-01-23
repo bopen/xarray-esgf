@@ -82,13 +82,13 @@ def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
 
     # Data vars
     assert set(ds.data_vars) == {"pr", "tas"}
-    assert ds["pr"].coordinates == "areacella experiment_id height lat lon time"
-    assert ds["tas"].coordinates == "areacella experiment_id height lat lon time"
+    assert ds["pr"].coordinates == "areacella experiment_id lat lon time"
+    assert ds["tas"].coordinates == "areacella experiment_id lat lon time"
 
     # Attributes
     assert (
         ds.coordinates
-        == "areacella experiment_id height lat lat_bnds lon lon_bnds time time_bnds"
+        == "areacella experiment_id lat lat_bnds lon lon_bnds time time_bnds"
     )
     assert ds.dataset_ids == [
         "CMIP6.ScenarioMIP.EC-Earth-Consortium.EC-Earth3-CC.ssp245.r1i1p1f1.Amon.pr.gr.v20210113",

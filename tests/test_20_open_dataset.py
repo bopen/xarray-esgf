@@ -63,7 +63,6 @@ def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
     assert set(ds.coords) == {
         "areacella",
         "experiment_id",
-        "height",
         "lat",
         "lat_bnds",
         "lon",
@@ -76,6 +75,10 @@ def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
         for name, coord in ds.coords.items()
         if name != "experiment_id"
     )
+
+    # Dimensionless coords
+    assert "height" not in ds["pr"].attrs
+    assert ds["tas"].attrs["height"] == 2.0
 
     # Data vars
     assert set(ds.data_vars) == {"pr", "tas"}

@@ -61,6 +61,17 @@ def add_coordinates_attr_inplace(obj: Dataset | DataArray) -> None:
             add_coordinates_attr_inplace(da)
 
 
+def move_dimensionless_coords_to_attrs(ds: Dataset) -> Dataset:
+    attrs = {}
+    for var, da in ds.coords.items():
+        if not da.dims:
+            attrs[var] = da.item()
+    ds = ds.drop_vars(list(attrs))
+    for da in ds.data_vars.values():
+        da.attrs.update(attrs)
+    return ds
+
+
 @dataclasses.dataclass
 class Client:
     selection: dict[str, str | list[str]]
@@ -183,11 +194,15 @@ class Client:
                 (ds,) = datasets
             else:
                 ds = combine_datasets(datasets)
+
             ds = ds.set_coords([
                 name
                 for name, da in ds.variables.items()
                 if BOUNDS_DIMS.intersection(da.dims) or "time" not in da.dims
             ])
+
+            ds = move_dimensionless_coords_to_attrs(ds)
+
             ds = ds.expand_dims({dim: [dataset_id_dict[dim]] for dim in concat_dims})
             combined_datasets[dataset_id] = ds
             LOGGER.debug(f"{dataset_id}: {dict(ds.sizes)}")

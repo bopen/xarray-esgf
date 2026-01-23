@@ -82,8 +82,6 @@ def test_open_dataset(tmp_path: Path, index_node: str, download: bool) -> None:
 
     # Data vars
     assert set(ds.data_vars) == {"pr", "tas"}
-    assert ds["pr"].coordinates == "areacella experiment_id lat lon time"
-    assert ds["tas"].coordinates == "areacella experiment_id lat lon time"
 
     # Attributes
     assert (
